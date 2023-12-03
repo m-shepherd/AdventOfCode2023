@@ -1,5 +1,5 @@
-use advent_of_code::problems::{problem2::Problem2, problem::Problem};
+use advent_of_code::problems::{problem3::Problem3, problem::Problem};
 
 fn main() {
-    Problem2::solve();
+    Problem3::solve();
 }
