@@ -22,6 +22,18 @@ fn get_next_step(source: &Vec<u32>, dest_list: &mut Vec<u32>, lines: &Vec<&str>,
     source_list.iter().for_each(|x| dest_list.push(*x));
 }
 
+fn get_source_element(dest_element: u32, start_string: &str, lines: &Vec<&str>) -> u32 {
+    let mut current_index = lines.iter().position(|&x| x == start_string).unwrap() + 1;
+    while current_index < lines.len() && lines[current_index].chars().nth(0).unwrap().is_numeric() {
+        let elements: Vec<u32> = lines[current_index].split(" ").map(|x| x.trim()).filter(|x| x.len() > 0).map(|x| x.parse::<u32>().unwrap()).collect();
+        if elements[0] <= dest_element && (elements[0].checked_add(elements[2]) == None || elements[0] + elements[2] >= dest_element) {
+            return elements[1] + (dest_element - elements[0]);
+        }
+        current_index += 1;
+    }
+    return dest_element;
+}
+
 impl Problem for Problem5 {
     fn solve() {
         let data = fileutils::load_problem_file(5);
@@ -29,24 +41,33 @@ impl Problem for Problem5 {
         let lines: Vec<&str> = data.split("\n").map(|x| x.trim()).filter(|x| x.len() > 0).collect();
 
         let seed_line: Vec<&str> = lines[0].split(":").map(|x| x.trim()).collect();
-        let seeds: Vec<u32> = seed_line[1].split(" ").map(|x| x.parse::<u32>().unwrap()).collect();
+        let seed_data: Vec<u32> = seed_line[1].split(" ").map(|x| x.parse::<u32>().unwrap()).collect();
 
-        let mut soil: Vec<u32> = vec![];
-        let mut fert: Vec<u32> = vec![];
-        let mut water: Vec<u32> = vec![];
-        let mut light: Vec<u32> = vec![];
-        let mut temp: Vec<u32> = vec![];
-        let mut humid: Vec<u32> = vec![];
-        let mut location: Vec<u32> = vec![];
 
-        get_next_step(&seeds, &mut soil, &lines, "seed-to-soil map:");
-        get_next_step(&soil, &mut fert, &lines, "soil-to-fertilizer map:");
-        get_next_step(&fert, &mut water, &lines, "fertilizer-to-water map:");
-        get_next_step(&water, &mut light, &lines, "water-to-light map:");
-        get_next_step(&light, &mut temp, &lines, "light-to-temperature map:");
-        get_next_step(&temp, &mut humid, &lines, "temperature-to-humidity map:");
-        get_next_step(&humid, &mut location, &lines, "humidity-to-location map:");
+        let mut location = 0;
+        let mut seed_found = false;
+        while !seed_found {
+            let humid = get_source_element(location, "humidity-to-location map:", &lines);
+            let temp = get_source_element(humid, "temperature-to-humidity map:", &lines);
+            let light = get_source_element(temp, "light-to-temperature map:", &lines);
+            let water = get_source_element(light, "water-to-light map:", &lines);
+            let fert = get_source_element(water, "fertilizer-to-water map:", &lines);
+            let soil = get_source_element(fert, "soil-to-fertilizer map:", &lines);
+            let seed = get_source_element(soil, "seed-to-soil map:", &lines);
 
-        println!("Min Location {}", location.iter().min().unwrap());
+            let mut i = 0;
+            while i < seed_data.len() {
+                let start = seed_data[i];
+                let range = seed_data[i+1];
+                seed_found = start <= seed && start + range >= seed;
+                if seed_found { break; }
+                i += 2;
+            }
+
+            if seed_found { break; }
+            location += 1;
+        }
+
+        println!("Min Location {}", location);
     }
 }
