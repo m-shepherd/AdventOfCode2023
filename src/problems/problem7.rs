@@ -8,7 +8,7 @@ pub struct Problem7 {}
 
 struct HandData<'a> { hand: &'a str, bet: u32 }
 
-const CARD_ORDERING: [char; 13] = ['2', '3', '4', '5', '6', '7', '8', '9', 'T', 'J', 'Q', 'K', 'A'];
+const CARD_ORDERING: [char; 13] = ['J', '2', '3', '4', '5', '6', '7', '8', '9', 'T', 'Q', 'K', 'A'];
 
 fn compare_cards(a: &HandData, b: &HandData) -> Ordering {
     if a.hand == b.hand {
@@ -38,11 +38,23 @@ impl Problem for Problem7 {
             let elements: Vec<&str> = line.split(" ").collect();
             let hand = elements[0];
             let card_data: Vec<&str> = hand.split("").filter(|x| x.trim().len() > 0).collect();
+            let mut num_jokers = 0;
             for card in &card_data {
-                if cards.get(card).is_some() {
+                if card == &"J" {
+                    num_jokers += 1;
+                } else if cards.get(card).is_some() {
                     cards.insert(card, cards.get(card).unwrap() + 1);
                 } else {
                     cards.insert(card, 1);
+                }
+            }
+
+            if num_jokers != 0 {
+                let max_key = cards.iter().max_by(|a,b| a.1.cmp(&b.1)).map(|(k, _)| k);
+                if max_key.is_some() {
+                    cards.insert(max_key.unwrap(), cards.get(max_key.unwrap()).unwrap() + num_jokers);
+                } else {
+                    cards.insert("J", num_jokers);
                 }
             }
             
