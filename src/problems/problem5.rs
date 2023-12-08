@@ -3,25 +3,6 @@ use crate::problems::problem::Problem;
 
 pub struct Problem5 {}
 
-fn get_next_step(source: &Vec<u32>, dest_list: &mut Vec<u32>, lines: &Vec<&str>, start_string: &str) {
-    let mut source_list = source.clone();
-    let mut current_index = lines.iter().position(|&x| x == start_string).unwrap() + 1;
-    while current_index < lines.len() && lines[current_index].chars().nth(0).unwrap().is_numeric() && source_list.len() != 0 {
-        let elements: Vec<u32> = lines[current_index].split(" ").map(|x| x.trim()).filter(|x| x.len() > 0).map(|x| x.parse::<u32>().unwrap()).collect();
-        let mut i = 0;
-        while i < source_list.len() {
-            if elements[1] <= source_list[i] && (elements[1].checked_add(elements[2]) == None || elements[1] + elements[2] >= source_list[i]) {
-                dest_list.push(elements[0] + (source_list[i] - elements[1]));
-                source_list.remove(i);
-            } else {
-                i += 1;
-            }
-        }
-        current_index += 1;
-    }
-    source_list.iter().for_each(|x| dest_list.push(*x));
-}
-
 fn get_source_element(dest_element: u32, start_string: &str, lines: &Vec<&str>) -> u32 {
     let mut current_index = lines.iter().position(|&x| x == start_string).unwrap() + 1;
     while current_index < lines.len() && lines[current_index].chars().nth(0).unwrap().is_numeric() {

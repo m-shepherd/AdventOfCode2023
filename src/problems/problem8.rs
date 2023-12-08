@@ -2,6 +2,7 @@ use crate::utils::fileutils;
 
 use super::problem::Problem;
 use std::collections::HashMap;
+use num::integer::lcm;
 
 #[derive(Debug)]
 struct MoveStep<'a> { left: &'a str, right: &'a str }
@@ -26,15 +27,26 @@ impl Problem for Problem8 {
             }
         }
 
-        let mut current_element = "AAA";
-        let mut num_steps = 0;
-        while current_element != "ZZZ" {
-            match directions[num_steps % directions.len()] {
-                "L" => current_element = movements.get(current_element).unwrap().left,
-                "R" => current_element = movements.get(current_element).unwrap().right,
-                _ => {}
+        let start_elements: Vec<&str> = movements.keys().filter(|x| x.chars().nth(2).unwrap() == 'A').map(|x| *x).collect();
+
+        let mut steps: Vec<u128> = Vec::new();
+        let mut num_steps: u128 = 1;
+        for element in start_elements {
+            let mut current_element = element;
+            let mut element_steps = 0;
+            while current_element.chars().nth(2).unwrap() != 'Z' { 
+                match directions[(element_steps % directions.len() as u128) as usize] {
+                    "L" => current_element = movements.get(current_element).unwrap().left,
+                    "R" => current_element = movements.get(current_element).unwrap().right,
+                    _ => {}
+                }
+                element_steps += 1;
             }
-            num_steps += 1;
+            steps.push(element_steps);
+        }
+
+        for i in 0..steps.len() {
+            num_steps = lcm(steps[i], num_steps);
         }
         println!("Number of steps required: {num_steps}");
     }
