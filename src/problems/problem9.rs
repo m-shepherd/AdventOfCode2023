@@ -27,11 +27,11 @@ impl Problem for Problem9 {
 
             let mut new_item = 0;
             for update_index in (0..(differences.len()-1)).rev() {
-                new_item = new_item + differences[update_index][differences[update_index].len() - 1];
-                differences[update_index].push(new_item);
+                new_item = differences[update_index][0] - new_item;
+                differences[update_index].insert(0, new_item);
             }    
 
-            sum_new_value += differences[0][differences[0].len() - 1];
+            sum_new_value += differences[0][0];
         }
 
         println!("Sum of new values: {sum_new_value}");
