@@ -87,7 +87,7 @@ impl Problem for Problem10 {
         if connected_loop.get(&Point { x: start_position.x + 1, y: start_position.y }).is_some() {
             path_options.push(Point { x: start_position.x + 1, y: start_position.y });
         }
-        if connected_loop.get(&Point { x: start_position.x, y: start_position.y - 1 }).is_some() &&
+        if start_position.y > 0 && connected_loop.get(&Point { x: start_position.x, y: start_position.y - 1 }).is_some() &&
                               (grid[start_position.y-1][start_position.x] == "|" || grid[start_position.y-1][start_position.x] == "7" ||
                                grid[start_position.y-1][start_position.x] == "F") {
             path_options.push(Point { x: start_position.x, y: start_position.y - 1 });
@@ -98,81 +98,45 @@ impl Problem for Problem10 {
             path_options.push(Point { x: start_position.x, y: start_position.y + 1 });
         }
 
-        let mut distances: HashMap<Point, i32> = HashMap::new();
-        let mut current_distance;
-        distances.insert(start_position, 0);
+        let mut enclosed_items = 0;
 
-        for path_start in path_options {
-            current_distance = 1;
-            distances.insert(path_start, current_distance);
-            let mut prev_pos = start_position;
-            let mut current_pos = path_start;
-            while current_pos != start_position {
-                match grid[current_pos.y][current_pos.x] {
-                    "|" => {
-                        if prev_pos == (Point {x: current_pos.x, y: current_pos.y - 1 }) {
-                            prev_pos = current_pos;
-                            current_pos = Point { x: current_pos.x, y: current_pos.y + 1 };
-                        } else {
-                            prev_pos = current_pos;
-                            current_pos = Point { x: current_pos.x, y: current_pos.y - 1 };
+        let mut updated_squares: Vec<Point> = Vec::new();
+        for y in 0..grid.len() {
+            let mut loop_open_index: i32 = -1;
+            for x in 0..grid[y].len() {
+                if connected_loop.contains_key(&Point {x, y}) {
+                    if loop_open_index == -1 {
+                        loop_open_index = x as i32;
+                    } else {
+                        for i in (loop_open_index+1)..(x as i32) {
+                            enclosed_items += 1;
+                            updated_squares.push(Point {x: i as usize, y});
                         }
-                    },
-                    "-" => {
-                        if prev_pos == (Point {x: current_pos.x - 1, y: current_pos.y }) {
-                            prev_pos = current_pos;
-                            current_pos = Point { x: current_pos.x + 1, y: current_pos.y };
-                        } else {
-                            prev_pos = current_pos;
-                            current_pos = Point { x: current_pos.x - 1, y: current_pos.y };
-                        }
+                        loop_open_index = -1;
                     }
-                    "L" => {
-                        if prev_pos == (Point {x: current_pos.x, y: current_pos.y - 1 }) {
-                            prev_pos = current_pos;
-                            current_pos = Point { x: current_pos.x + 1, y: current_pos.y };
-                        } else {
-                            prev_pos = current_pos;
-                            current_pos = Point { x: current_pos.x, y: current_pos.y - 1 };
-                        }
-                    }
-                    "J" => {
-                        if prev_pos == (Point {x: current_pos.x, y: current_pos.y - 1 }) {
-                            prev_pos = current_pos;
-                            current_pos = Point { x: current_pos.x - 1, y: current_pos.y };
-                        } else {
-                            prev_pos = current_pos;
-                            current_pos = Point { x: current_pos.x, y: current_pos.y - 1 };
-                        }
-                    },
-                    "7" => {
-                        if prev_pos == (Point {x: current_pos.x, y: current_pos.y + 1 }) {
-                            prev_pos = current_pos;
-                            current_pos = Point { x: current_pos.x - 1, y: current_pos.y };
-                        } else {
-                            prev_pos = current_pos;
-                            current_pos = Point { x: current_pos.x, y: current_pos.y + 1 };
-                        }
-                    },
-                    "F" => {
-                        if prev_pos == (Point {x: current_pos.x, y: current_pos.y + 1 }) {
-                            prev_pos = current_pos;
-                            current_pos = Point { x: current_pos.x + 1, y: current_pos.y };
-                        } else {
-                            prev_pos = current_pos;
-                            current_pos = Point { x: current_pos.x, y: current_pos.y + 1 };
-                        }
-                    },
-                    _ => {}
-                }
-                current_distance += 1;
-                if distances.get(&current_pos).is_none() || distances.get(&current_pos).unwrap() > &current_distance {
-                    distances.insert(current_pos, current_distance);
                 }
             }
         }
 
-        let max_distance: i32 = *distances.values().max().unwrap();
-        println!("Max Distance from start is {max_distance}");
+        for x in 0..grid[0].len() {
+            let mut loop_open_index: i32 = -1;
+            for y in 0..grid.len() {
+                if connected_loop.contains_key(&Point {x, y}) {
+                    if loop_open_index == -1 {
+                        loop_open_index = y as i32;
+                    } else {
+                        for i in (loop_open_index+1)..(y as i32) {
+                            if !updated_squares.contains(&Point {x, y: i as usize}) {
+                                enclosed_items += 1;
+                                updated_squares.push(Point {x, y: i as usize});
+                            }
+                        }
+                        loop_open_index = -1;
+                    }
+                }
+            }
+        } 
+
+        println!("Number of enclosed items: {}", enclosed_items);
     }
 }
