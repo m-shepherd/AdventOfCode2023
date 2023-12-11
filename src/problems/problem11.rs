@@ -14,26 +14,32 @@ fn get_expanded_universe(data: &str) -> Vec<Vec<&str>> {
         let elements: Vec<&str> = line.split("").map(|x| x.trim()).filter(|x| x.len() > 0).collect();
         let num_galaxies = elements.clone().into_iter().filter(|x| *x == "#").count();
             
+        let mut cloned_elements = elements.clone();
         if num_galaxies == 0 {
-            universe.push(elements.clone());
+            cloned_elements.insert(0, "Y");
+            universe.push(cloned_elements);
+        } else {
+            cloned_elements.insert(0, "N");
+            universe.push(cloned_elements);
         }
-        universe.push(elements);
     }
 
-    let mut index = 0;
-    while index < universe[0].len() {
-        let mut column: Vec<&str> = Vec::new();
+    let mut header_column: Vec<&str> = Vec::new();
+    for x in 0..universe[0].len() {
+        let mut galaxy_count = 0;
         for y in 0..universe.len() {
-            column.push(universe[y][index]);
-        }
-        if column.into_iter().filter(|a| *a == "#").count() == 0 {
-            for y in 0..universe.len() {
-                universe[y].insert(index, ".");
+            if universe[y][x] == "#" {
+                galaxy_count += 1;
             }
-            index += 1;
         }
-        index += 1;
+        if galaxy_count == 0 {
+            header_column.push("Y");
+        } else {
+            header_column.push("N");
+        }
     }
+
+    universe.insert(0, header_column);
 
     universe
 }
@@ -59,6 +65,7 @@ impl Problem for Problem11 {
 
         let mut total_distance = 0;
         let mut checked_galaxies: Vec<Point> = Vec::new();
+        let times_larger: u128 = 1000000;
 
         for location in &locations {
             for i in 0..locations.len() {
@@ -66,8 +73,43 @@ impl Problem for Problem11 {
                     continue; 
                 }
 
-                let x_distance = locations[i].x.abs_diff(location.x);
-                let y_distance = locations[i].y.abs_diff(location.y);
+                let mut x_distance: u128 = 0;
+                if locations[i].x < location.x {
+                    for pos in locations[i].x..location.x {
+                        if universe[0][pos] == "Y" {
+                            x_distance += times_larger;
+                        } else {
+                            x_distance += 1
+                        }
+                    }
+                } else {
+                    for pos in location.x..locations[i].x {
+                        if universe[0][pos] == "Y" {
+                            x_distance += times_larger;
+                        } else {
+                            x_distance += 1
+                        }
+                    }
+                }
+
+                let mut y_distance: u128 = 0;
+                if locations[i].y < location.y {
+                    for pos in locations[i].y..location.y {
+                        if universe[pos][0] == "Y" {
+                            y_distance += times_larger;
+                        } else {
+                            y_distance += 1;
+                        }
+                    }
+                } else {
+                    for pos in location.y..locations[i].y {
+                        if universe[pos][0] == "Y" {
+                            y_distance += times_larger;
+                        } else {
+                            y_distance += 1;
+                        }
+                    }
+                }
                 total_distance += x_distance + y_distance;
             }
             checked_galaxies.push(location.clone());
